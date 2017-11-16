@@ -1,9 +1,9 @@
 defmodule KV.RegistryTest do
 	use ExUnit.Case, async: true
 
-	setup do
-		{:ok, registry} = start_supervised KV.Registry
-		%{registry: registry}
+	setup context do
+		{:ok, _} = start_supervised({KV.Registry, name: context.test})
+		%{registry: context.test}
 	end
 
 	test "spawn buckets", %{registry: registry} do
@@ -20,6 +20,10 @@ defmodule KV.RegistryTest do
 		KV.Registry.create(registry, "shopping")
 		{:ok, bucket} = KV.Registry.lookup(registry, "shopping")
 		Agent.stop(bucket)
+
+    # Do a call to ensure the registry processed the DOWN message
+    _ = KV.Registry.create(registry, "bogus")
+
 		assert KV.Registry.lookup(registry, "shopping") == :error
 	end
 
@@ -34,6 +38,10 @@ defmodule KV.RegistryTest do
  		#all linked processes receive an EXIT signal, 
  		#causing the linked process to also terminate unless they are trapping exits.
 		Agent.stop(bucket, :shutdown)
+
+    # Do a call to ensure the registry processed the DOWN message
+    _ = KV.Registry.create(registry, "bogus")
+
 		assert KV.Registry.lookup(registry, "shopping") == :error
 
 	end
