@@ -38,4 +38,8 @@ defmodule KV.RegistryTest do
 
 	end
 
+	test "are temporary workers" do 
+		assert Supervisor.child_spec(KV.Bucket, []).restart === :temporary
+	end
+
 end
